@@ -1,0 +1,9 @@
+[
+  "Makefile",
+  ".*~$",
+  ".*\\.swp$",
+  ".*\\.coffee$",
+  "browserify",
+  "coffeeify",
+  "coffee-script"
+]

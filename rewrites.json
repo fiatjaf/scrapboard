@@ -1,0 +1,24 @@
+[
+    {
+      "to": "_list/scraps/here",
+      "from": ""
+    }, {
+      "to": "",
+      "from": "_ddoc"
+    }, {
+      "to": "_update/accept-scrap",
+      "from": "here"
+    }, {
+      "to": "_update/scrap-elsewhere",
+      "from": "elsewhere"
+    }, {
+      "to": "../../*",
+      "from": "scrapdata/*"
+    }, {
+      "to": "*",
+      "from": "_ddoc/*"
+    }, {
+      "to": "*",
+      "from": "/*"
+    }
+]
