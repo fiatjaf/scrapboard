@@ -4,14 +4,10 @@
   if not doc
     doc =
       _id: req.id or req.uuid
-      content: data.content
-      target: data.target
-      where: 'elsewhere'
-      timestamp: (new Date).getTime()
 
-  else
-    doc.content = data.content
-    doc.timestamp = (new Date).getTime()
-    doc.where = 'elsewhere'
+  doc.target = data.target
+  doc.content = data.content
+  doc.timestamp = (new Date).getTime()
+  doc.where = 'elsewhere'
 
   return [doc, JSON.stringify {ok: true, id: req.id or req.uuid}]

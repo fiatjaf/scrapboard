@@ -12,17 +12,36 @@ module.exports = (data) ->
   </div>
   
   <script> window.data = #{toJSON data} </script>
-  <script src="//cdn.rawgit.com/dolox/fallback/v1.1.4/fallback.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/lazyload/2.0.3/lazyload-min.js"></script>
   <script>
-    fallback.load({
-      style: [
-        "_rewrite/_ddoc/style.css",
-        "/style.css"
-      ],
-      app: [
-        "_rewrite/_ddoc/bundle.js",
-        "/bundle.js"
-      ]
-    })
+    pathParts = location.pathname.split('/').filter(function(x) { return x })
+    hasRewrite = pathParts.indexOf('_rewrite') !== -1
+    basePath = (function () {
+      var basePath;
+      if (hasRewrite) {
+        basePath = [];
+        for (_i = 0, _len = pathParts.length; _i < _len; _i++) {
+          part = pathParts[_i];
+          basePath.push(part);
+          if (part === '_rewrite') {
+            break;
+          }
+        }
+        basePath = '/' + basePath.join('/')
+      }
+      else {
+        basePath = ''
+      }
+      return basePath
+    })()
+
+    if (hasRewrite) {
+      LazyLoad.js(basePath + '/_ddoc/bundle.js')
+      LazyLoad.css(basePath + '/_ddoc/style.css')
+    }
+    else {
+      LazyLoad.js(basePath + '/bundle.js')
+      LazyLoad.css(basePath + '/style.css')
+    }
   </script>
   """

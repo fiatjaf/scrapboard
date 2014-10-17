@@ -39,12 +39,13 @@ Scrapbook = React.createClass
       throw {} if not val
 
       p = url.parse val
-      home = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port}#{p.path}/elsewhere"
+      home = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port else ''}#{p.path}/elsewhere"
       superagent.put(home)
                 .send({
                   content: @refs.content.getDOMNode().value
                   target: location.href
                 })
+                .withCredentials()
                 .end (err, res) =>
         throw {} if err
 
@@ -52,7 +53,7 @@ Scrapbook = React.createClass
         throw {} if not body.ok
 
         id = body.id
-        src = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port}#{p.path}/scrapdata/#{id}"
+        src = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port else ''}#{p.path}/scrapdata/#{id}"
         @submitScrap(src, home)
 
     catch e
@@ -73,7 +74,7 @@ Scrapbook = React.createClass
       if not confirm('Send anonymous scrap?')
         return
 
-    superagent.put(location.pathname + '/here')
+    superagent.put(basePath + '/here')
               .send(payload)
               .end (err, res) ->
       console.log JSON.parse res.text
