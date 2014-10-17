@@ -1,5 +1,5 @@
 (newDoc, oldDoc, userCtx, secObj) ->
-  v = require 'v'
+  v = require 'node_modules/validator'
 
   if newDoc.where == 'here'
     # outsiders posting here
@@ -8,7 +8,7 @@
 
     for key, val of newDoc
       switch key
-        when '_id' then throw forbidden: '_id is not an UUID.' unless v.isUUID val
+        when '_id' then throw forbidden: '_id is too small.' if val.length < 20
         when 'content' then throw forbidden: 'content is not a string.' if v.isNull val
         when 'src' then throw forbidden: 'src is not a URL.' unless v.isURL val
         when 'from' then throw forbidden: 'from is not a URL.' unless v.isURL val
@@ -16,10 +16,14 @@
         when 'timestamp' then throw forbidden: 'timestamp is not a number.' unless typeof val is 'number'
         when 'name' then throw forbidden: 'name is not a string.' if v.isNull val
         when 'email' then throw forbidden: 'email is not a real email.' unless v.isEmail val
-        else throw forbidden: "#{key} is not an allowed key."
+        when 'where' then null
+        else
+          if key[0] isnt '_'
+            throw forbidden: "#{key} is not an allowed key."
 
     # checks only made at the original database, not replication
-    if 'original' in secObj.admins.roles
+    if secObj and secObj.admins and 'original' in secObj.admins.roles
+
       now = (new Date).getTime()
       if newDoc.timestamp > now + 60000 or newDoc.timestamp < now - 60000
         throw forbidden: 'timestamp is not now.'

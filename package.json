@@ -5,9 +5,11 @@
   "main": "components/Scrapbook.coffee",
   "devDependencies": {},
   "scripts": {
-    "build": "npm run build-app & npm run build-ddoc",
-    "build-app": "browserify -t coffeeify components/Scrapbook.coffee > _attachments/bundle.js && uglifyjs _attachments/bundle.js -o _attachments/bundle.js",
-    "build-ddoc": "coffee --bare -c ./updates/. && coffee --bare -c ./shows/. && coffee --bare -c ./lists/. && coffee --bare -c ./views/. && coffee --bare -c validate_doc_update.coffee && coffee --bare -c template.coffee"
+    "build-prod": "npm run build && npm run minify",
+    "minify": "uglifyjs _attachments/bundle.js -o _attachments/bundle.js",
+    "build": "npm run build-app && npm run build-ddoc",
+    "build-app": "NODE_PATH=. browserify -t coffeeify components/Scrapbook.coffee > _attachments/bundle.js",
+    "build-ddoc": "coffee --bare -c ./updates/. ./shows/. ./lists/. ./views/. ./components/. validate_doc_update.coffee template.coffee"
   },
   "author": "",
   "license": "ISC"

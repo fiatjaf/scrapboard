@@ -1,7 +1,10 @@
 [
     {
-      "to": "_list/scraps/here",
+      "to": "_show/index",
       "from": ""
+    }, {
+      "to": "_list/scrapbook/here",
+      "from": "scraps"
     }, {
       "to": "",
       "from": "_ddoc"

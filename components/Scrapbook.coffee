@@ -1,7 +1,6 @@
-react = require '../node_modules/react'
-marked = require '../node_modules/marked'
-superagent = require '../node_modules/superagent'
-url = require '../node_modules/url'
+React = require 'node_modules/react'
+marked = require 'node_modules/marked'
+superagent = require 'node_modules/superagent'
 
 {div, a, form, input, textarea, button} = React.DOM
 
@@ -10,7 +9,7 @@ Scrapbook = React.createClass
     (div className: 'scrapbook',
       (form
         method: 'post'
-        action: '/'
+        action: '/here'
         className: 'new'
         onSubmit: @handleSubmit
       ,
@@ -22,9 +21,12 @@ Scrapbook = React.createClass
         , 'Send')
       )
       (div className: 'scraps',
-        (div {},
+        (div {key: "#{scrap.content.substr(0, 10)} #{scrap.name or scrap.from}"},
           (a {href: scrap.from}, scrap.name or scrap.from or 'Anonymous')
-          marked scrap.content
+          (div
+            dangerouslySetInnerHTML:
+              __html: marked scrap.content
+          )
         ) for scrap in @props.scraps
       )
     )
@@ -79,4 +81,5 @@ Scrapbook = React.createClass
 module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
-  React.renderComponent Scrapbook window.data, document.getElementById 'main'
+  url = require 'node_modules/url'
+  React.renderComponent Scrapbook(window.data), document.getElementById 'main'
