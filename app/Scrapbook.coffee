@@ -2,6 +2,8 @@ React = require 'node_modules/react'
 marked = require 'node_modules/marked'
 superagent = require 'node_modules/superagent'
 
+{getQuickBasePath} = require 'app/path-utils'
+
 {div, a, form, input, textarea, button} = React.DOM
 
 Scrapbook = React.createClass
@@ -38,9 +40,8 @@ Scrapbook = React.createClass
       val = @refs.from.getDOMNode().value
       throw {} if not val
 
-      p = url.parse val
-      home = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port else ''}#{p.path}/elsewhere"
-      superagent.put(home)
+      home = getQuickBasePath val
+      superagent.put(home + '/elsewhere')
                 .send({
                   content: @refs.content.getDOMNode().value
                   target: location.href
@@ -52,20 +53,18 @@ Scrapbook = React.createClass
         body = JSON.parse res.text
         throw {} if not body.ok
 
-        id = body.id
-        src = "#{p.protocol or 'http:'}//#{p.host}#{if p.port then ':' + p.port else ''}#{p.path}/scrapdata/#{id}"
-        @submitScrap(src, home)
+        @submitScrap(body.id, home)
 
     catch e
       @submitScrap()
 
-  submitScrap: (src, from) ->
+  submitScrap: (srcid, from) ->
     payload =
       content: @refs.content.getDOMNode().value
       name: @refs.name.getDOMNode().value
 
-    if src
-      payload.src = src
+    if srcid
+      payload.srcid = srcid
 
     if from
       payload.from = from

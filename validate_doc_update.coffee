@@ -1,5 +1,6 @@
 (newDoc, oldDoc, userCtx, secObj) ->
   v = require 'node_modules/validator'
+  isInternal = (key) -> key[0] == '_'
 
   if newDoc.where == 'here'
     # outsiders posting here
@@ -7,18 +8,19 @@
       throw forbidden: 'Can\'t change scraps already posted.'
 
     for key, val of newDoc
+      if val and typeof val is 'object' and not isInternal key
+        throw forbidden: key + ' is an object and this is not allowed.'
+
       switch key
         when '_id' then throw forbidden: '_id is too small.' if val.length < 20
         when 'content' then throw forbidden: 'content is not a string.' if v.isNull val
-        when 'src' then throw forbidden: 'src is not a URL.' unless v.isURL val
         when 'from' then throw forbidden: 'from is not a URL.' unless v.isURL val
         when 'verified' then throw forbidden: 'verified is not boolean.' unless typeof val is 'boolean'
         when 'timestamp' then throw forbidden: 'timestamp is not a number.' unless typeof val is 'number'
         when 'email' then throw forbidden: 'email is not a real email.' unless v.isEmail val
-        when 'name' then throw forbidden: 'name is not a string.' if name and typeof name is 'object'
-        when 'where' then null
+        when 'srcid', 'name', 'where' then null
         else
-          if key[0] isnt '_'
+          unless isInternal key
             throw forbidden: "#{key} is not an allowed key."
 
     # checks only made at the original database, not replication
