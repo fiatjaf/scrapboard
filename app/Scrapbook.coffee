@@ -15,8 +15,7 @@ Scrapbook = React.createClass
         className: 'new'
         onSubmit: @handleSubmit
       ,
-        (input {ref: 'from', name: 'from', placeholder: 'your scrapbook URL, if you have one'})
-        (input {ref: 'name', name: 'name', placeholder: 'your name, optionally'})
+        (input {ref: 'from', name: 'from', placeholder: 'your scrapbook URL, if you have one, or your name'})
         (textarea {ref: 'content', name: 'content'})
         (button
           type: 'submit'
@@ -37,31 +36,40 @@ Scrapbook = React.createClass
     e.preventDefault()
 
     try
-      val = @refs.from.getDOMNode().value
-      throw {} if not val
+      homeurl = @refs.from.getDOMNode().value
+      throw {} if not homeurl
 
-      home = getQuickBasePath val
-      superagent.put(home + '/elsewhere')
-                .send({
-                  content: @refs.content.getDOMNode().value
-                  target: location.href
-                })
-                .withCredentials()
-                .end (err, res) =>
+      @postHomeFirst homeurl, (err, srcid, home) =>
         throw {} if err
-
-        body = JSON.parse res.text
-        throw {} if not body.ok
-
-        @submitScrap(body.id, home)
+        @submitScrap(srcid, home)
 
     catch e
       @submitScrap()
 
-  submitScrap: (srcid, from) ->
+  postHomeFirst: (homeurl, callback) ->
+    home = getQuickBasePath homeurl
+    superagent.put(home + '/elsewhere')
+              .send({
+                content: @refs.content.getDOMNode().value
+                target: getQuickBasePath location.href
+              })
+              .withCredentials()
+              .end (err, res) =>
+      callback err if err
+
+      body = JSON.parse res.text
+      callback true if not body.ok
+
+      callback null, body.id, home
+
+  submitScrap: (srcid, from, name) ->
     payload =
       content: @refs.content.getDOMNode().value
-      name: @refs.name.getDOMNode().value
+
+    if name
+      payload.name = name
+    else
+      name = @refs.from.getDOMNode().value
 
     if srcid
       payload.srcid = srcid
