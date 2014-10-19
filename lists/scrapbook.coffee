@@ -8,7 +8,7 @@
     results
 
   provides 'html', ->
-    tpl = require 'template'
+    tpl = require 'app/template'
     data =
       scraps: fetch()
     tpl data
