@@ -4,7 +4,7 @@ superagent = require 'node_modules/superagent'
 
 {getQuickBasePath} = require 'app/path-utils'
 
-{div, a, form, input, textarea, button} = React.DOM
+{div, time, a, form, input, textarea, button} = React.DOM
 
 Scrapbook = React.createClass
   getInitialState: ->
@@ -54,9 +54,17 @@ Scrapbook = React.createClass
         , 'Send')
       )
       (div className: 'scraps',
-        (div {key: scrap._id},
-          (a {href: scrap.from}, scrap.name or scrap.from or 'Anonymous')
+        (div
+          className: 'scrap'
+          key: scrap._id
+        ,
+          (a {className: 'not-verified'}, '×') if not scrap.verified
+          (a {className: 'h-card', href: scrap.from}, scrap.name or scrap.from or 'Anonymous')
+          (time
+            className: 'dt-published'
+          , (new Date scrap.timestamp).toISOString().substr(0,16).split('T').join(' '))
           (div
+            className: 'h-entry'
             dangerouslySetInnerHTML:
               __html: marked scrap.content
           )

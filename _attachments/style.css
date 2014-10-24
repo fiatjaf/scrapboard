@@ -1,1 +1,43 @@
 * { box-sizing: border-box }
+
+.top-bar {
+  height: 34px;
+  text-align: right;
+}
+
+form.new {
+  width: 400px;
+  margin: auto;
+  text-align: right;
+}
+form.new input,
+form.new textarea {
+  width: 100%;
+  font-family: monospace;
+  padding: 3px;
+}
+form.new textarea { height: 123px; }
+form.new button { font-family: 1.2em; }
+
+.scraps {}
+.scrap {
+  padding: 12px 4px;
+  border-bottom: 1px dotted gray;
+  font-family: verdana, ubuntu, sans-serif;
+  font-size: 0.9em;
+}
+.scrap:first-child {
+  border-top: 1px dotted gray;
+  margin-top: 10px;
+}
+
+.scrap .not-verified { color: #FFC051 }
+.scrap a {
+  font-weight: bold;
+  color: rgb(64, 107, 53);
+}
+.scrap time {
+  font-size: 0.8em;
+  float: right;
+  color: #456;
+}
