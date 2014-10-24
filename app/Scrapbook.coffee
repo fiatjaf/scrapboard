@@ -8,32 +8,42 @@ superagent = require 'node_modules/superagent'
 
 Scrapbook = React.createClass
   getInitialState: ->
-    loginURL: null
-    loggedAs: null
+    externalLoginURL: null
+    showNameInput: true
 
-  componentDidMount: ->
-    superagent.get('/_session')
-              .set('accept', 'application/json')
-              .end (err, res) =>
-      if not err and res.body.ok
-        @setState loggedAs: res.body.userCtx.name
+  doShowNameInput: -> @setState showNameInput: true
+  dontShowNameInput: -> @setState showNameInput: false
 
   render: ->
     (div className: 'scrapbook',
+      (div
+        className: 'top-bar'
+      ,
+        (Login
+          url: '/_session'
+          className: 'login-top'
+          onLogin: @dontShowNameInput
+          onLogout: @doShowNameInput
+        )
+      )
       (form
         method: 'post'
         action: '/here'
         className: 'new'
         onSubmit: @handleSubmit
       ,
-        (input {ref: 'from', name: 'from', placeholder: 'your scrapbook URL, if you have one, or your name'})
-        (textarea {ref: 'content', name: 'content'})
+        (div {},
+          (input {ref: 'from', name: 'from', placeholder: 'your scrapbook URL, if you have one, or your name'})
+        ) if @state.showNameInput
+        (div {},
+          (textarea {ref: 'content', name: 'content'})
+        )
         (button
           type: 'submit'
         , 'Send')
       )
       (div className: 'scraps',
-        (div {key: "#{scrap.content.substr(0, 10)} #{scrap.name or scrap.from}"},
+        (div {key: scrap._id},
           (a {href: scrap.from}, scrap.name or scrap.from or 'Anonymous')
           (div
             dangerouslySetInnerHTML:
@@ -41,66 +51,65 @@ Scrapbook = React.createClass
           )
         ) for scrap in @props.scraps
       )
-      (div className: 'login-dialog',
+      (Login
+        url: @state.externalLoginURL
+        className: 'login-dialog'
+        onLogin: @closeExternalLoginDialog
+      ,
         'Please login to '
-        (a {href: @state.loginURL}, @state.loginURL)
-        ' through this form or go there and login first.'
-        (form
-          method: 'post'
-          action: @state.loginURL
-          onSubmit: @handleLogin
-        ,
-          (input name: 'name', ref: 'name')
-          (input type: 'password', name: 'password', ref: 'password')
-          (button
-            type: 'submit'
-          , 'Login')
-        )
-      ) if @state.loginURL
+        (a {href: @state.externalLoginURL}, @state.externalLoginURL)
+        ' through this form or by going there directly.'
+      ) if @state.externalLoginURL
     )
 
   handleSubmit: (e) ->
     e.preventDefault()
 
+    # first we get the field that may be a name or may be an URL
+    # to the other webpage or scrapbook.
     try
       homeurl = @refs.from.getDOMNode().value
+    catch e
+      homeurl = null
+    ## ~
+
+    try
+      # if there is none, we throw, then we proceed to submit
+      # an anonymous scrap
       throw {} if not homeurl
 
+      # otherwise we try to make the person post the scrap at
+      # her own scrapbook
       @postHomeFirst homeurl, (err, srcid, home) =>
         if err
+          # for unauthorized errors, we try to make the person log in
+          # in her own scrapbook.
           if err.unauthorized then @loginAtHomeFirst homeurl
-          else throw err
+
+          # other errors mean that the name is either an URL
+          # to a non-scrapbook page or a name, so we submit it
+          # as both.
+          else @submitScrap(null, homeurl, homeurl)
 
         else
+          # if there was no error posting at the person's own
+          # scrapbook we proceed, now having the scrap id and the
+          # correct scrapbook URL
           @submitScrap(srcid, home)
 
     catch e
-      @submitScrap()
+      @submitScrap(null, location.href, homeurl)
 
   loginAtHomeFirst: (baseurl) ->
+    # just show a login dialog for the person's scrapbook
     sessionurl = url.parse baseurl
     sessionurl.search = ''
     sessionurl.pathname = '_session'
-    @setState loginURL: sessionurl.format()
+    @setState externalLoginURL: sessionurl.format()
 
-  handleLogin: (e) ->
-    e.preventDefault()
-
-    name = @refs.name.getDOMNode().value
-    password = @refs.password.getDOMNode().value
-    url = @state.loginURL
-    superagent.post(url)
-              .send(name: name, password: password)
-              .set('content-type', 'application/json')
-              .set('accept', 'application/json')
-              .withCredentials()
-              .end (err, res) =>
-      if err or not res.body.ok
-        return
-
-      @setState
-        loginURL: null
-        loggedAs: res.body.name
+  closeExternalLoginDialog: ->
+    # close it onLogin
+    @setState externalLoginURL: null
 
   postHomeFirst: (homeurl, callback) ->
     home = getQuickBasePath homeurl
@@ -121,11 +130,9 @@ Scrapbook = React.createClass
   submitScrap: (srcid, from, name) ->
     payload =
       content: @refs.content.getDOMNode().value
-
-    if name
-      payload.name = name
-    else
-      name = @refs.from.getDOMNode().value
+      name: name # if the name is the same as "from", our _update
+                 # function will know what to do (check if it is an
+                 # URL etc.)
 
     if srcid
       payload.srcid = srcid
@@ -141,6 +148,76 @@ Scrapbook = React.createClass
               .send(payload)
               .end (err, res) ->
       console.log JSON.parse res.text
+
+Login = React.createClass
+  getInitialState: ->
+    loggedAs: null
+
+  componentDidMount: ->
+    superagent.get('/_session')
+              .set('accept', 'application/json')
+              .end (err, res) =>
+      if not err and res.body.ok
+        @setState loggedAs: res.body.userCtx.name
+
+        if res.body.userCtx.name
+          @props.onLogin(res.body.userCtx.name) if @props.onLogin
+
+  render: ->
+    (div className: @props.className,
+      (div {},
+        @props.children
+        (form
+          method: 'post'
+          action: @props.url
+          onSubmit: @doLogin
+        ,
+          (input name: 'name', ref: 'name', placeholder: 'name')
+          (input type: 'password', name: 'password', ref: 'password', placeholder: 'password')
+          (button
+            type: 'submit'
+          , 'Login')
+        )
+      ) if not @state.loggedAs
+      (div {},
+        "logged as #{@state.loggedAs} ("
+        (a {href: "#", onClick: @doLogout}, 'logout')
+        ")"
+      ) if @state.loggedAs
+    )
+
+  doLogin: (e) ->
+    e.preventDefault()
+
+    name = @refs.name.getDOMNode().value
+    password = @refs.password.getDOMNode().value
+    superagent.post(@props.url)
+              .set('content-type', 'application/x-www-form-urlencoded')
+              .set('accept', 'application/json')
+              .send(name: name, password: password)
+              .withCredentials()
+              .end (err, res) =>
+      if err or not res.body.ok
+        return
+
+      @setState
+        loggedAs: res.body.name
+
+      @props.onLogin(res.body.name) if @props.onLogin
+
+  doLogout: (e) ->
+    e.preventDefault()
+
+    superagent.del(@props.url)
+              .withCredentials()
+              .end (err, res) =>
+      if err
+        return
+
+      @setState
+        loggedAs: null
+
+      @props.onLogout() if @props.onLogout
     
 module.exports = Scrapbook
 

@@ -30,8 +30,9 @@
       if newDoc.timestamp > now + 60000 or newDoc.timestamp < now - 60000
         throw forbidden: 'timestamp is not now.'
 
-      if newDoc.verified is not false
+      if newDoc.verified is not false and userCtx.name != newDoc.name
         throw forbidden: 'verified is not false.'
+    ## ~
 
   else if newDoc.where == 'elsewhere'
     # myself posting elsewhere
