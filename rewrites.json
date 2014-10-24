@@ -1,27 +1,27 @@
 [
-    {
-      "to": "_show/index",
-      "from": ""
-    }, {
-      "to": "_list/scrapbook/here",
-      "from": "scraps"
-    }, {
-      "to": "_update/accept-scrap",
-      "from": "here"
-    }, {
-      "to": "_update/scrap-elsewhere",
-      "from": "elsewhere"
-    }, {
-      "to": "../../*",
-      "from": "_db/*"
-    }, {
-      "to": "",
-      "from": "_ddoc"
-    }, {
-      "to": "*",
-      "from": "_ddoc/*"
-    }, {
-      "to": "*",
-      "from": "/*"
-    }
+  {
+    "to": "_show/index",
+    "from": ""
+  }, {
+    "to": "_list/scrapbook/here",
+    "from": "scraps"
+  }, {
+    "to": "_update/accept-scrap",
+    "from": "here"
+  }, {
+    "to": "_update/scrap-elsewhere",
+    "from": "elsewhere"
+  }, {
+    "to": "../../*",
+    "from": "_db/*"
+  }, {
+    "to": "",
+    "from": "_ddoc"
+  }, {
+    "to": "*",
+    "from": "_ddoc/*"
+  }, {
+    "to": "*",
+    "from": "/*"
+  }
 ]

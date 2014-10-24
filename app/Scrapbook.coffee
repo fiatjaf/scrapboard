@@ -14,6 +14,17 @@ Scrapbook = React.createClass
   doShowNameInput: -> @setState showNameInput: true
   dontShowNameInput: -> @setState showNameInput: false
 
+  componentDidMount: ->
+    if not @props
+      @loadScraps()
+
+  loadScraps: ->
+    superagent.get(location.href)
+              .set('accept', 'application/json')
+              .end (err, res) =>
+      if not err
+        @setProps res.body
+
   render: ->
     (div className: 'scrapbook',
       (div
@@ -50,6 +61,8 @@ Scrapbook = React.createClass
               __html: marked scrap.content
           )
         ) for scrap in @props.scraps
+        (a {href: @props.firstpage}, 'first page')
+        (a {href: @props.nextpage}, 'next page') if @props.scraps.length >= 25
       )
       (Login
         url: @state.externalLoginURL
@@ -146,8 +159,17 @@ Scrapbook = React.createClass
 
     superagent.post(getQuickBasePath(location.href) + '/here')
               .send(payload)
-              .end (err, res) ->
-      console.log JSON.parse res.text
+              .end (err, res) =>
+      if location.search.indexOf 'startkey' isnt -1
+        # go to the first page
+        location.href = @props.firstpage
+
+      else
+        # reload the scraps
+        @loadScraps()
+
+        # clean content data
+        @refs.content.getDOMNode().value = ''
 
 Login = React.createClass
   getInitialState: ->
