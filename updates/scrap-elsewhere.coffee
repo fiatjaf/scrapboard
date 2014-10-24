@@ -1,5 +1,8 @@
 (doc, req) ->
-  data = if req.method is 'PUT' then JSON.parse(req.body) else req.form
+  try
+    data = JSON.parse req.body
+  catch e
+    data = req.form
 
   if not doc
     doc =

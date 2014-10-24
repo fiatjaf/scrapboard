@@ -7,6 +7,17 @@ superagent = require 'node_modules/superagent'
 {div, a, form, input, textarea, button} = React.DOM
 
 Scrapbook = React.createClass
+  getInitialState: ->
+    loginURL: null
+    loggedAs: null
+
+  componentDidMount: ->
+    superagent.get('/_session')
+              .set('accept', 'application/json')
+              .end (err, res) =>
+      if not err and res.body.ok
+        @setState loggedAs: res.body.userCtx.name
+
   render: ->
     (div className: 'scrapbook',
       (form
@@ -30,6 +41,22 @@ Scrapbook = React.createClass
           )
         ) for scrap in @props.scraps
       )
+      (div className: 'login-dialog',
+        'Please login to '
+        (a {href: @state.loginURL}, @state.loginURL)
+        ' through this form or go there and login first.'
+        (form
+          method: 'post'
+          action: @state.loginURL
+          onSubmit: @handleLogin
+        ,
+          (input name: 'name', ref: 'name')
+          (input type: 'password', name: 'password', ref: 'password')
+          (button
+            type: 'submit'
+          , 'Login')
+        )
+      ) if @state.loginURL
     )
 
   handleSubmit: (e) ->
@@ -40,15 +67,44 @@ Scrapbook = React.createClass
       throw {} if not homeurl
 
       @postHomeFirst homeurl, (err, srcid, home) =>
-        throw {} if err
-        @submitScrap(srcid, home)
+        if err
+          if err.unauthorized then @loginAtHomeFirst homeurl
+          else throw err
+
+        else
+          @submitScrap(srcid, home)
 
     catch e
       @submitScrap()
 
+  loginAtHomeFirst: (baseurl) ->
+    sessionurl = url.parse baseurl
+    sessionurl.search = ''
+    sessionurl.pathname = '_session'
+    @setState loginURL: sessionurl.format()
+
+  handleLogin: (e) ->
+    e.preventDefault()
+
+    name = @refs.name.getDOMNode().value
+    password = @refs.password.getDOMNode().value
+    url = @state.loginURL
+    superagent.post(url)
+              .send(name: name, password: password)
+              .set('content-type', 'application/json')
+              .set('accept', 'application/json')
+              .withCredentials()
+              .end (err, res) =>
+      if err or not res.body.ok
+        return
+
+      @setState
+        loginURL: null
+        loggedAs: res.body.name
+
   postHomeFirst: (homeurl, callback) ->
     home = getQuickBasePath homeurl
-    superagent.put(home + '/elsewhere')
+    superagent.post(home + '/elsewhere')
               .send({
                 content: @refs.content.getDOMNode().value
                 target: getQuickBasePath location.href
@@ -58,7 +114,7 @@ Scrapbook = React.createClass
       callback err if err
 
       body = JSON.parse res.text
-      callback true if not body.ok
+      return callback res if not body.ok
 
       callback null, body.id, home
 
@@ -81,7 +137,7 @@ Scrapbook = React.createClass
       if not confirm('Send anonymous scrap?')
         return
 
-    superagent.put(basePath + '/here')
+    superagent.post(getQuickBasePath(location.href) + '/here')
               .send(payload)
               .end (err, res) ->
       console.log JSON.parse res.text
@@ -90,4 +146,5 @@ module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
   url = require 'node_modules/url'
+  
   React.renderComponent Scrapbook(window.data), document.getElementById 'main'

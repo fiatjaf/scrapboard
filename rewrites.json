@@ -6,9 +6,6 @@
       "to": "_list/scrapbook/here",
       "from": "scraps"
     }, {
-      "to": "",
-      "from": "_ddoc"
-    }, {
       "to": "_update/accept-scrap",
       "from": "here"
     }, {
@@ -16,7 +13,10 @@
       "from": "elsewhere"
     }, {
       "to": "../../*",
-      "from": "scrapdata/*"
+      "from": "_db/*"
+    }, {
+      "to": "",
+      "from": "_ddoc"
     }, {
       "to": "*",
       "from": "_ddoc/*"
