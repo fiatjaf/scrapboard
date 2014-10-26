@@ -1,7 +1,7 @@
-React = require 'node_modules/react'
+React = require 'lib/react'
 Scrapbook = require 'app/Scrapbook'
 
-{getPathParts, getHasRewrite, getBasePath, getQuickBasePath, getProtocol} = require 'app/utils'
+{getPathParts, getHasRewrite, getBasePath, getQuickBasePath, getProtocol} = require 'lib/utils'
 
 module.exports = (data, req, ddoc) ->
   """

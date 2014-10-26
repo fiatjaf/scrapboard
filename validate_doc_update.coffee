@@ -1,7 +1,7 @@
 (newDoc, oldDoc, userCtx, secObj) ->
-  hashcash = require 'node_modules/hashcash-token'
-  sha256 = require('node_modules/sha256').sha256
-  v = require 'node_modules/validator'
+  hashcash = require 'lib/hashcash-token'
+  sha256 = require('lib/sha256').sha256
+  v = require 'lib/validator'
   ddoc = this
   NOW = (new Date).getTime()
   isInternal = (key) -> key[0] == '_'

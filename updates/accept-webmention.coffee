@@ -1,7 +1,7 @@
 (doc, req) ->
   ddoc = this
-  url = require 'node_modules/urlparser'
-  {getQuickBasePath, getProtocol} = require 'app/utils'
+  url = require 'lib/urlparser'
+  {getQuickBasePath, getProtocol} = require 'lib/utils'
 
   protocol = getProtocol req, ddoc
   here = url.parse(protocol + '://' + req.headers['Host'])

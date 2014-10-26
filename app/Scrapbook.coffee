@@ -1,9 +1,9 @@
-React = require 'node_modules/react'
-marked = require 'node_modules/marked'
-hashcash = require 'node_modules/hashcash-token'
-superagent = require 'node_modules/superagent'
+React = require 'lib/react'
+marked = require 'lib/marked'
+hashcash = require 'lib/hashcash-token'
+superagent = require 'lib/superagent'
 
-{getQuickBasePath} = require 'app/utils'
+{getQuickBasePath} = require 'lib/utils'
 
 {div, time, a, form, input, textarea, button} = React.DOM
 
@@ -361,7 +361,7 @@ Login = React.createClass
 module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
-  url = require 'node_modules/urlparser'
-  microformats = require 'node_modules/microformat-shiv'
+  url = require 'lib/urlparser'
+  microformats = require 'lib/microformat-shiv'
   
   React.renderComponent Scrapbook(window.data), document.getElementById 'main'

@@ -4,7 +4,7 @@
   catch e
     data = req.form
 
-  v = require 'node_modules/validator'
+  v = require 'lib/validator'
 
   if not doc
     doc =
