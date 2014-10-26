@@ -12,6 +12,9 @@
     "to": "_update/scrap-elsewhere",
     "from": "elsewhere"
   }, {
+    "to": "_update/accept-webmention",
+    "from": "webmention"
+  }, {
     "to": "_update/update-verified/*",
     "from": "verified/*"
   }, {

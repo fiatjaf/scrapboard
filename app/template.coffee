@@ -1,13 +1,14 @@
 React = require 'node_modules/react'
 Scrapbook = require 'app/Scrapbook'
 
-{getPathParts, getHasRewrite, getBasePath, getQuickBasePath} = require 'app/path-utils'
+{getPathParts, getHasRewrite, getBasePath, getQuickBasePath, getProtocol} = require 'app/utils'
 
-module.exports = (data) ->
+module.exports = (data, req, ddoc) ->
   """
   <!DOCTYPE html>
   
   <title>Scrapbook</title>
+  <link href="#{getProtocol req, ddoc}://#{req.headers['Host'] + getQuickBasePath(req.requested_path)}/webmention" rel="webmention">
   
   <div id="main">
     #{React.renderComponentToString Scrapbook(data)}

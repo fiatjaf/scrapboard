@@ -48,7 +48,7 @@
         when 'verified' then throw forbidden: 'verified is not boolean.' unless typeof val is 'boolean'
         when 'timestamp' then throw forbidden: 'timestamp is not a number.' unless typeof val is 'number'
         when 'email' then throw forbidden: 'email is not a real email.' unless v.isEmail val
-        when 'srcid', 'name', 'where' then null
+        when 'srcid', 'name', 'where', 'webmention' then null
         else
           unless isInternal key
             throw forbidden: "#{key} is not an allowed key."

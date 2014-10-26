@@ -9,6 +9,8 @@
         location: location
     }
 
+  ddoc = this
+
   fetch = ->
     scraps = []
     while row = getRow()
@@ -30,7 +32,7 @@
   provides 'html', ->
     tpl = require 'app/template'
     data = fetch()
-    tpl data
+    tpl data, req, ddoc
 
   provides 'json', ->
     toJSON fetch()

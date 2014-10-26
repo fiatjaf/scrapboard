@@ -2,7 +2,7 @@ React = require 'node_modules/react'
 marked = require 'node_modules/marked'
 superagent = require 'node_modules/superagent'
 
-{getQuickBasePath} = require 'app/path-utils'
+{getQuickBasePath} = require 'app/utils'
 
 {div, time, a, form, input, textarea, button} = React.DOM
 
@@ -82,20 +82,33 @@ Scrapbook = React.createClass
                 content: doc.content
                 name: doc.name
 
-              # then update the scrap and mark it as verified.
-              superagent.put(basePath + '/verified/' + docid)
-                        .send(update)
-                        .withCredentials()
-                        .end (err, res) =>
-                if err
-                  return console.log err
-
-                # finally, we reload the scraps and restart the process.
-                @loadScraps()
-                @verifyScraps()
-
             else
-              null # implement webmention verification
+              # in the webmention case, parse the HTML
+              hiddenDOM = document.createElement('html')
+              hiddenDOM.innerHTML = res.text
+              mf2_opts =
+                node: hiddenDOM
+                filter: ['h-card', 'h-entry']
+              items = microformats.getItems(mf2_opts)
+
+              update = {verified: true}
+              for item in items.items
+                if 'h-card' in item.type
+                  update.name = item.properties.name[0]
+                if 'h-entry' in item.type
+                  update.content = item.properties.content[0].value
+
+            # then update the scrap and mark it as verified.
+            superagent.put(basePath + '/verified/' + docid)
+                      .send(update)
+                      .withCredentials()
+                      .end (err, res) =>
+              if err
+                return console.log err
+
+              # finally, we reload the scraps and restart the process.
+              @loadScraps()
+              @verifyScraps()
 
   render: ->
     (div className: 'scrapbook',
@@ -127,7 +140,7 @@ Scrapbook = React.createClass
       )
       (div className: 'scraps',
         (div
-          className: 'scrap'
+          className: 'scrap h-entry'
           key: scrap._id
         ,
           (a {className: 'not-verified'}, '×') if not scrap.verified
@@ -136,7 +149,7 @@ Scrapbook = React.createClass
             className: 'dt-published'
           , (new Date scrap.timestamp).toISOString().substr(0,16).split('T').join(' '))
           (div
-            className: 'h-entry'
+            className: 'e-content'
             dangerouslySetInnerHTML:
               __html: marked scrap.content
           )
@@ -324,6 +337,7 @@ Login = React.createClass
 module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
-  url = require 'node_modules/url'
+  url = require 'node_modules/urlparser'
+  microformats = require 'node_modules/microformat-shiv'
   
   React.renderComponent Scrapbook(window.data), document.getElementById 'main'
