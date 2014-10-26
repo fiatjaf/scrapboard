@@ -42,7 +42,7 @@
         throw forbidden: key + ' is an object and this is not allowed.'
 
       switch key
-        when '_id' then throw forbidden: '_id is too small.' if val.length < 20
+        when '_id' then throw forbidden: '_id is too small.' if val.length < 6
         when 'content' then throw forbidden: 'content is not a string.' if v.isNull val
         when 'from' then throw forbidden: 'from is not a URL.' unless v.isURL val
         when 'verified' then throw forbidden: 'verified is not boolean.' unless typeof val is 'boolean'
@@ -54,14 +54,21 @@
             throw forbidden: "#{key} is not an allowed key."
 
     # checks only made at the original database, not replication
-    if secObj and secObj.admins and 'original' in secObj.admins.roles
+    if secObj and secObj.admins and 'anti-abuse' in secObj.admins.roles
 
+      # check the correct timestamp
       now = (new Date).getTime()
       if newDoc.timestamp > now + 60000 or newDoc.timestamp < now - 60000
         throw forbidden: 'timestamp is not now.'
 
+      # check if the document is not marked as verified
       if newDoc.verified is not false and userCtx.name != newDoc.name
         throw forbidden: 'verified is not false.'
+
+      # check if the _id corresponds to the timestamp (one _id for each 100 seconds)
+      # (but relax it a little (10x), so numerical breaks don't affect the normal user)
+      if newDoc._id.substr(0, 7) == (new Date).getTime().toString().substr(0, 7)
+        throw forbidden: "you're trying to create too much scraps, wait a little"
     ## ~
 
   else if newDoc.where == 'elsewhere'

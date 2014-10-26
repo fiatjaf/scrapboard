@@ -8,7 +8,8 @@
 
   if not doc
     doc =
-      _id: req.uuid
+      _id: (new Date).getTime().toString().substr(0, 8) # one new _id allowed
+                                                        # at each 100 seconds
       content: data.content
       name: data.name   # optional
       where: 'here'
