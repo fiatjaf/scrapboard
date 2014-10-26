@@ -10,13 +10,23 @@ Scrapbook = React.createClass
   getInitialState: ->
     externalLoginURL: null
     showNameInput: true
-
-  doShowNameInput: -> @setState showNameInput: true
-  dontShowNameInput: -> @setState showNameInput: false
+    verifying: false
 
   componentDidMount: ->
     if not @props
       @loadScraps()
+
+  doShowNameInput: -> @setState showNameInput: true
+  dontShowNameInput: -> @setState showNameInput: false
+
+  handleLogin: ->
+    @dontShowNameInput()
+    @setState verifying: true
+    @verifyScraps()
+
+  handleLogout: ->
+    @doShowNameInput()
+    @setState verifying: false
 
   loadScraps: ->
     superagent.get(location.href)
@@ -24,6 +34,68 @@ Scrapbook = React.createClass
               .end (err, res) =>
       if not err
         @setProps res.body
+
+  verifyScraps: ->
+    if not @state.verifying
+      return
+    else
+      # first we fetch one row of docs waiting to be verified
+      superagent.get(basePath + '/_ddoc/_view/to-verify?limit=1')
+                .set('accept', 'application/json')
+                .withCredentials()
+                .end (err, res) =>
+        if err
+          return console.log err
+
+        # we stop de process if there are not more docs waiting
+        if res.body.rows.length == 0
+          @setState verifying: false
+          return console.log err
+
+        # otherwise we go to the fetched doc
+        for row in res.body.rows
+          docid = row.id
+
+          if typeof row.value == 'object'
+            # grab its source if it is an array of some scrapbook path (with lots of fields)
+            # and a docid (at the source). we build a direct url to the source doc here.
+            source = getQuickBasePath(row.value[0]) + '/_db/' + row.value[1]
+          else
+            # grab the source as it was passed, if it was a webmention or something alike.
+            source = row.value
+
+          # fetch the source url
+          superagent.get(source)
+                    .end (err, res) =>
+            if err
+              return console.log err
+
+            if /couch/i.exec res.headers['server']
+              # in the couchdb case, we parse the JSON
+              doc = JSON.parse res.text
+              if doc.error
+                return console.log doc
+
+              # and grab the contents directly.
+              update =
+                verified: true
+                content: doc.content
+                name: doc.name
+
+              # then update the scrap and mark it as verified.
+              superagent.put(basePath + '/verified/' + docid)
+                        .send(update)
+                        .withCredentials()
+                        .end (err, res) =>
+                if err
+                  return console.log err
+
+                # finally, we reload the scraps and restart the process.
+                @loadScraps()
+                @verifyScraps()
+
+            else
+              null # implement webmention verification
 
   render: ->
     (div className: 'scrapbook',
@@ -33,8 +105,8 @@ Scrapbook = React.createClass
         (Login
           url: '/_session'
           className: 'login-top'
-          onLogin: @dontShowNameInput
-          onLogout: @doShowNameInput
+          onLogin: @handleLogin
+          onLogout: @handleLogout
         )
       )
       (form

@@ -10,6 +10,7 @@
 
   doc.target = data.target
   doc.content = data.content
+  doc.name = data.name or req.userCtx.name
   doc.timestamp = (new Date).getTime()
   doc.where = 'elsewhere'
 

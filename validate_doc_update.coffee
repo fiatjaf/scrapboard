@@ -1,10 +1,40 @@
 (newDoc, oldDoc, userCtx, secObj) ->
   v = require 'node_modules/validator'
   isInternal = (key) -> key[0] == '_'
+  userIsAdmin = ->
+    ## normalize cloudant secObj
+    if secObj.cloudant
+      if '_writer' in secObj.cloudant.nobody
+        return true
+
+      names = []
+      for name, roles in secObj.cloudant
+        names.push name if '_writer' in roles
+
+      roles = []
+    
+    else
+      if not secObj.members and not secObj.admins
+        return true
+
+      admins = secObj.admins or {}
+      members = secObj.members or {}
+      names = (admins.names or []).concat(members.names or [])
+      roles = (admins.roles or []).concat(members.roles or [])
+    ## now we have a standard "names" and a standard "roles"
+
+    if userCtx.name in names
+      return true
+
+    for role in userCtx.roles
+      if role in roles
+        return true
+
+  ######### start validating
 
   if newDoc.where == 'here'
     # outsiders posting here
-    if oldDoc
+    if oldDoc and not userIsAdmin()
       throw forbidden: 'Can\'t change scraps already posted.'
 
     for key, val of newDoc
@@ -36,36 +66,7 @@
 
   else if newDoc.where == 'elsewhere'
     # myself posting elsewhere
-    
-    ## normalize cloudant secObj
-    if secObj.cloudant
-      if '_writer' in secObj.cloudant.nobody
-        return
-
-      names = []
-      for name, roles in secObj.cloudant
-        names.push name if '_writer' in roles
-
-      roles = []
-    
-    else
-      if not secObj.members and not secObj.admins
-        return
-
-      admins = secObj.admins or {}
-      members = secObj.members or {}
-      names = (admins.names or []).concat(members.names or [])
-      roles = (admins.roles or []).concat(members.roles or [])
-    ## now we have a standard "names" and a standard "roles"
-
-    if userCtx.name in names
-      return
-
-    for role in userCtx.roles
-      if role in roles
-        return
-
-    throw unauthorized: 'you are not an authorized user.'
+    throw unauthorized: 'you are not an authorized user.' if not userIsAdmin()
 
   else
     throw forbidden: 'where is invalid.'
