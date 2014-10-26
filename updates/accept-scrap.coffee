@@ -33,6 +33,9 @@
       if v.isURL(doc.name) then delete doc.name
       else delete doc.from
 
+    if data.hashcash
+      doc.hashcash = JSON.stringify data.hashcash
+
     return [doc, JSON.stringify {ok: true, id: req.uuid}]
 
   else

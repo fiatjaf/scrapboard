@@ -1,5 +1,6 @@
 React = require 'node_modules/react'
 marked = require 'node_modules/marked'
+hashcash = require 'node_modules/hashcash-token'
 superagent = require 'node_modules/superagent'
 
 {getQuickBasePath} = require 'app/utils'
@@ -195,16 +196,16 @@ Scrapbook = React.createClass
           # other errors mean that the name is either an URL
           # to a non-scrapbook page or a name, so we submit it
           # as both.
-          else @submitScrap(null, homeurl, homeurl)
+          else @postHere(null, homeurl, homeurl)
 
         else
           # if there was no error posting at the person's own
           # scrapbook we proceed, now having the scrap id and the
           # correct scrapbook URL
-          @submitScrap(srcid, home)
+          @postHere(srcid, home)
 
     catch e
-      @submitScrap(null, location.href, homeurl)
+      @postHere(null, location.href, homeurl)
 
   loginAtHomeFirst: (baseurl) ->
     # just show a login dialog for the person's scrapbook
@@ -233,7 +234,7 @@ Scrapbook = React.createClass
 
       callback null, body.id, home
 
-  submitScrap: (srcid, from, name) ->
+  postHere: (srcid, from, name) ->
     payload =
       content: @refs.content.getDOMNode().value
       name: name # if the name is the same as "from", our _update
@@ -250,10 +251,33 @@ Scrapbook = React.createClass
       if not confirm('Send anonymous scrap?')
         return
 
+    # if hashcash is needed, first fetch the data to use in the token
+    # generation:
+    if window.use_hashcash
+      superagent.get(getQuickBasePath(location.href) + '/get_hashcash_data')
+                .end (err, res) =>
+        return console.log err if err
+
+        token = hashcash.generate {
+          difficulty: 20000
+          data: res.text
+        }
+
+        payload.hashcash = token
+        @submitScrap payload
+
+    else
+      # otherwise just proceed
+      @submitScrap payload
+
+  submitScrap: (payload) ->
     superagent.post(getQuickBasePath(location.href) + '/here')
               .send(payload)
               .end (err, res) =>
-      if location.search.indexOf 'startkey' isnt -1
+      return console.log err if err
+      return console.log res.text unless JSON.parse(res.text).ok
+
+      if location.search.indexOf('startkey') isnt -1
         # go to the first page
         location.href = @props.firstpage
 

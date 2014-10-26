@@ -30,4 +30,8 @@ module.exports = (data, req, ddoc) ->
       LazyLoad.css(basePath + '/style.css')
     }
   </script>
+
+  <script>
+    #{if ddoc.settings and ddoc.settings.hashcash then "window.use_hashcash = true" else ''}
+  </script>
   """

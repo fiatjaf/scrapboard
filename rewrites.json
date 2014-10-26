@@ -6,6 +6,9 @@
     "to": "_list/scrapbook/here",
     "from": "scraps"
   }, {
+    "to": "_show/hashcash",
+    "from": "get_hashcash_data"
+  }, {
     "to": "_update/accept-scrap",
     "from": "here"
   }, {

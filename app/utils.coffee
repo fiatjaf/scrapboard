@@ -22,7 +22,7 @@ getQuickBasePath = (fullPathName) ->
   return getBasePath pathParts, hasRewrite
 
 getProtocol = (req, ddoc) ->
-  if ddoc.settings
+  if ddoc.settings and ddoc.settings.protocol
     protocol = ddoc.settings.protocol.replace /\W/g, ''
   if not protocol
     port = req.headers['Host'].split(':')[1]
