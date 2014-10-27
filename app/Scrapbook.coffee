@@ -17,6 +17,9 @@ Scrapbook = React.createClass
     if not @props
       @loadScraps()
 
+    # get domain or name at localStorage
+    @refs.from.getDOMNode().value = localStorage.getItem 'domain/name'
+
   doShowNameInput: -> @setState showNameInput: true
   dontShowNameInput: -> @setState showNameInput: false
 
@@ -276,6 +279,9 @@ Scrapbook = React.createClass
               .end (err, res) =>
       return console.log err if err
       return console.log res.text unless JSON.parse(res.text).ok
+
+      # save domain or name at localStorage
+      localStorage.setItem 'domain/name', @refs.from.getDOMNode().value
 
       if location.search.indexOf('startkey') isnt -1
         # go to the first page
