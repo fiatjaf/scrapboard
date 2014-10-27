@@ -19,6 +19,20 @@ form.new textarea {
 form.new textarea { height: 123px; }
 form.new button { font-family: 1.2em; }
 
+.login-dialog {
+  left: 50%;
+  width: 700px;
+  text-align: center;
+  position: absolute;
+  margin-left: -350px;
+  z-index: 3;
+  background: aliceblue;
+  padding: 20px;
+  border-radius: 6px;
+}
+.login-dialog input,
+.login-dialog button { font-size: 1.3em }
+
 .scraps {}
 .scrap {
   padding: 12px 4px;

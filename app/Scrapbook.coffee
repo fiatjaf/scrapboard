@@ -142,6 +142,15 @@ Scrapbook = React.createClass
           type: 'submit'
         , 'Send')
       )
+      (Login
+        url: @state.externalLoginURL
+        className: 'login-dialog'
+        onLogin: @closeExternalLoginDialog
+      ,
+        'Please login to '
+        (a {href: @state.externalLoginURL, target: '_blank'}, @state.externalLoginURL)
+        ' through this form or by going there directly.'
+      ) if @state.externalLoginURL
       (div className: 'scraps',
         (div
           className: 'scrap h-entry'
@@ -161,15 +170,6 @@ Scrapbook = React.createClass
         (a {href: @props.firstpage}, 'first page')
         (a {href: @props.nextpage}, 'next page') if @props.scraps.length >= 25
       )
-      (Login
-        url: @state.externalLoginURL
-        className: 'login-dialog'
-        onLogin: @closeExternalLoginDialog
-      ,
-        'Please login to '
-        (a {href: @state.externalLoginURL}, @state.externalLoginURL)
-        ' through this form or by going there directly.'
-      ) if @state.externalLoginURL
     )
 
   handleSubmit: (e) ->
