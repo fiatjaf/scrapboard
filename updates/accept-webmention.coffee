@@ -17,7 +17,7 @@
 
     response =
       code: 202
-      body: protocol + '://' + here.host + getQuickBasePath(req.requested_path) + '/_db/' + req.uuid
+      body: protocol + '://' + here.host + getQuickBasePath(req.requested_path or req.path) + '/_db/' + req.uuid
 
   else
     doc = null
