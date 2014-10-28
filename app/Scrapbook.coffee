@@ -1,5 +1,4 @@
 React = require 'lib/react'
-marked = require 'lib/marked'
 hashcash = require 'lib/hashcash-token'
 superagent = require 'lib/superagent'
 
@@ -163,9 +162,7 @@ Scrapbook = React.createClass
           , (new Date scrap.timestamp).toISOString().substr(0,16).split('T').join(' '))
           (div
             className: 'e-content'
-            dangerouslySetInnerHTML:
-              __html: marked scrap.content
-          )
+          , scrap.content)
         ) for scrap in @props.scraps
         (a {href: @props.firstpage}, 'first page')
         (a {href: @props.nextpage}, 'next page') if @props.scraps.length >= 25
