@@ -106,7 +106,7 @@ Scrapbook = React.createClass
                       .send(update)
                       .withCredentials()
                       .end (err, res) =>
-              if err
+              if err or not JSON.parse(res.text).ok
                 return console.log err
 
               # finally, we reload the scraps and restart the process.
