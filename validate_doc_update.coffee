@@ -41,7 +41,7 @@
     # outsiders posting here
 
     # check hashcash token (anti-spam)
-    if ddoc.settings and ddoc.settings.hashcash
+    if ddoc.settings and ddoc.settings.hashcash and not userIsAdmin()
       throw unauthorized: 'hashcash token needed.' if not newDoc.hashcash
       token = JSON.parse newDoc.hashcash
       throw unauthorized: 'hashcash token wrong.' if not hashcash.validate token, {
@@ -72,14 +72,14 @@
             throw forbidden: "#{key} is not an allowed key."
 
     # checks only made at the original database, not replication
-    if secObj and secObj.admins and 'anti-abuse' in secObj.admins.roles
+    if secObj and secObj.admins and 'anti-abuse' in secObj.admins.roles and not userIsAdmin()
 
       # check the correct timestamp
       if newDoc.timestamp > NOW + 60000 or newDoc.timestamp < NOW - 60000
         throw forbidden: 'timestamp is not now.'
 
       # check if the document is not marked as verified
-      if newDoc.verified is not false and userCtx.name != newDoc.name
+      if newDoc.verified is not false
         throw forbidden: 'verified is not false.'
 
       # check if the _id corresponds to the timestamp (one _id for each 100 seconds)
