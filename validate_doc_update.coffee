@@ -84,8 +84,8 @@
 
       # check if the _id corresponds to the timestamp (one _id for each 100 seconds)
       # (but relax it a little (10x), so numerical breaks don't affect the normal user)
-      if newDoc._id.substr(0, 7) == NOW.toString().substr(0, 7)
-        throw forbidden: "you're trying to create too much scraps, wait a little"
+      if newDoc._id.substr(0, 7) != NOW.toString().substr(0, 7)
+        throw forbidden: "you're sending a scrap with a wrong timestamp."
     ## ~
 
   else if newDoc.where == 'elsewhere'

@@ -3,17 +3,20 @@ hashcash = require 'lib/hashcash-token'
 superagent = require 'lib/superagent'
 
 {getQuickBasePath} = require 'lib/utils'
-
 {div, time, a, form, input, textarea, button} = React.DOM
 
+getSessionURL = -> if typeof getBaseURL == 'function' then getBaseURL() + '/_session' else '/_session'
+
 Scrapbook = React.createClass
+  getDefaultProps: ->
+    scraps: []
   getInitialState: ->
     externalLoginURL: null
     showNameInput: true
     verifying: false
 
   componentDidMount: ->
-    if not @props
+    if not @props.scraps.length
       @loadScraps()
 
     # get domain or name at localStorage
@@ -31,12 +34,24 @@ Scrapbook = React.createClass
     @doShowNameInput()
     @setState verifying: false
 
-  loadScraps: ->
-    superagent.get(location.href)
-              .set('accept', 'application/json')
+  loadScraps: (params, e) ->
+    if e and params
+      e.preventDefault()
+    else
+      params.preventDefault() if params
+      params = ''
+
+    # safeguard against firefox bug with CORS redirect: https://bugzilla.mozilla.org/show_bug.cgi?id=1102337
+    if window.isWidget and navigator.userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i)[1] != 'Chrome'
+        loadURL = 'https://cors-anywhere.herokuapp.com/' + basePath
+    else
+        loadURL = basePath
+
+    superagent.get(loadURL + params)
+              .set('Accept', 'application/json')
               .end (err, res) =>
       if not err
-        @setProps res.body
+        @setProps JSON.parse res.text
 
   verifyScraps: ->
     if not @state.verifying
@@ -119,7 +134,7 @@ Scrapbook = React.createClass
         className: 'top-bar'
       ,
         (Login
-          url: '/_session'
+          url: getSessionURL()
           className: 'login-top'
           onLogin: @handleLogin
           onLogout: @handleLogout
@@ -164,8 +179,14 @@ Scrapbook = React.createClass
             className: 'e-content'
           , scrap.content)
         ) for scrap in @props.scraps
-        (a {href: @props.firstpage}, 'first page')
-        (a {href: @props.nextpage}, 'next page') if @props.scraps.length >= 25
+        (a
+          onClick: @loadScraps.bind @, @props.firstpage
+          href: @props.firstpage
+        , 'first page')
+        (a
+          onClick: @loadScraps.bind @, @props.nextpage
+          href: @props.nextpage
+        , 'next page') if @props.scraps.length >= 25
       )
     )
 
@@ -175,19 +196,22 @@ Scrapbook = React.createClass
     # first we get the field that may be a name or may be an URL
     # to the other webpage or scrapbook.
     try
-      homeurl = @refs.from.getDOMNode().value
+      name = @refs.from.getDOMNode().value
     catch e
-      homeurl = null
+      name = null
     ## ~
 
+    # the homeurl is parsed from whatever the users pastes in the name box
+    homeurl = getQuickBasePath name if name
+
     try
-      # if there is none, we throw, then we proceed to submit
-      # an anonymous scrap
+      # if there is no homeurl (or it is not an url)
+      # we throw, then we proceed to submit an anonymous scrap
       throw {} if not homeurl
 
       # otherwise we try to make the person post the scrap at
       # her own scrapbook
-      @postHomeFirst homeurl, (err, srcid, home) =>
+      @postHomeFirst homeurl, (err, srcid) =>
         if err
           # for unauthorized errors, we try to make the person log in
           # in her own scrapbook.
@@ -202,10 +226,10 @@ Scrapbook = React.createClass
           # if there was no error posting at the person's own
           # scrapbook we proceed, now having the scrap id and the
           # correct scrapbook URL
-          @postHere(srcid, home)
+          @postHere(srcid, homeurl)
 
     catch e
-      @postHere(null, location.href, homeurl)
+      @postHere(null, null, name)
 
   loginAtHomeFirst: (baseurl) ->
     # just show a login dialog for the person's scrapbook
@@ -219,11 +243,10 @@ Scrapbook = React.createClass
     @setState externalLoginURL: null
 
   postHomeFirst: (homeurl, callback) ->
-    home = getQuickBasePath homeurl
-    superagent.post(home + '/elsewhere')
+    superagent.post(homeurl + '/elsewhere')
               .send({
                 content: @refs.content.getDOMNode().value
-                target: getQuickBasePath location.href
+                target: basePath
               })
               .withCredentials()
               .end (err, res) =>
@@ -232,7 +255,7 @@ Scrapbook = React.createClass
       body = JSON.parse res.text
       return callback res if not body.ok
 
-      callback null, body.id, home
+      callback null, body.id
 
   postHere: (srcid, from, name) ->
     payload =
@@ -254,7 +277,7 @@ Scrapbook = React.createClass
     # if hashcash is needed, first fetch the data to use in the token
     # generation:
     if window.use_hashcash
-      superagent.get(getQuickBasePath(location.href) + '/get_hashcash_data')
+      superagent.get(basePath + '/get_hashcash_data')
                 .end (err, res) =>
         return console.log err if err
 
@@ -271,7 +294,7 @@ Scrapbook = React.createClass
       @submitScrap payload
 
   submitScrap: (payload) ->
-    superagent.post(getQuickBasePath(location.href) + '/here')
+    superagent.post(basePath + '/here')
               .send(payload)
               .end (err, res) =>
       return console.log err if err
@@ -280,7 +303,7 @@ Scrapbook = React.createClass
       # save domain or name at localStorage
       localStorage.setItem 'domain/name', @refs.from.getDOMNode().value
 
-      if location.search.indexOf('startkey') isnt -1
+      if url.parse(basePath).host == location.host and location.search.indexOf('startkey') isnt -1
         # go to the first page
         location.href = @props.firstpage
 
@@ -296,7 +319,7 @@ Login = React.createClass
     loggedAs: null
 
   componentDidMount: ->
-    superagent.get('/_session')
+    superagent.get(getSessionURL())
               .set('accept', 'application/json')
               .end (err, res) =>
       if not err and res.body.ok
@@ -366,5 +389,11 @@ module.exports = Scrapbook
 if typeof window isnt 'undefined'
   url = require 'lib/urlparser'
   microformats = require 'lib/microformat-shiv'
+  getBaseURL = ->
+    p = url.parse basePath
+    if p.host
+      return p.protocol + '//' + p.host
+    else
+      return ''
   
-  React.renderComponent Scrapbook(window.data), document.getElementById 'main'
+  React.renderComponent Scrapbook(window.data), document.getElementById 'scrapboard-main'

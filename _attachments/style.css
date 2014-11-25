@@ -17,7 +17,7 @@ form.new textarea {
   padding: 3px;
 }
 form.new textarea { height: 123px; }
-form.new button { font-family: 1.2em; }
+form.new button { font-size: 1.2em; }
 
 .login-dialog {
   left: 50%;

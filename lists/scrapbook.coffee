@@ -1,15 +1,15 @@
 (head, req) ->
+  ddoc = this
+
   if not req.query.include_docs or
      not req.query.limit or req.query.limit > 25 or
      req.query.skip or req.query.reduce
-    location = if req.path.indexOf '_rewrite' isnt -1 then '_rewrite' else '/'
+    location = ddoc.settings.baseURL or if req.path.indexOf '_rewrite' isnt -1 then '_rewrite' else '/'
     return {
       code: 302
       headers:
         location: location
     }
-
-  ddoc = this
 
   fetch = ->
     scraps = []
@@ -23,16 +23,14 @@
       if key isnt 'startkey'
         query.push key + '=' + value
 
-    {
-      scraps: scraps
-      nextpage: '?' + query.join('&')
-      firstpage: '?' + query.slice(1).join('&')
-    }
+    scraps: scraps
+    nextpage: '?' + query.join('&')
+    firstpage: '?' + query.slice(1).join('&')
+
+  provides 'json', ->
+    toJSON fetch()
 
   provides 'html', ->
     tpl = require 'app/template'
     data = fetch()
     tpl data, req, ddoc
-
-  provides 'json', ->
-    toJSON fetch()

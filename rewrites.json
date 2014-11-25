@@ -3,6 +3,9 @@
     "to": "_show/index",
     "from": ""
   }, {
+    "to": "_show/widget",
+    "from": "widget.js"
+  }, {
     "to": "_list/scrapbook/here",
     "from": "scraps"
   }, {
