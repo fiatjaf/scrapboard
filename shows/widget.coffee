@@ -10,6 +10,6 @@
     window.isWidget = true
     
     document.write('<div id="scrapboard-main"></div>')
-    document.write('<script src="#{settings.baseURL}/_ddoc/bundle.js"></script>')
-    document.write('<link rel="stylesheet" href="#{settings.baseURL}/_ddoc/style.css">')
+    document.write('<script src="#{settings.baseURL}/bundle.js"></script>')
+    document.write('<link rel="stylesheet" href="#{settings.baseURL}/style.css">')
     """

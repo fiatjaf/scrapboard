@@ -34,6 +34,11 @@ form.new button { font-size: 1.2em; }
 .login-dialog button { font-size: 1.3em }
 
 .scraps {}
+.scraps footer {
+  font-family: ubuntu, verdana, sans-serif;
+  padding: 20px;
+}
+.scraps footer a { color: black; }
 .scrap {
   padding: 12px 4px;
   border-bottom: 1px dotted gray;
@@ -44,11 +49,21 @@ form.new button { font-size: 1.2em; }
   border-top: 1px dotted gray;
   margin-top: 10px;
 }
+.scrap.deleted {
+  background-color: #EED63D;
+  padding: 2px;
+}
 
-.scrap .not-verified { color: #FFC051 }
+.scrap.not-verified {
+  background-color: rgba(255, 192, 81, 0.35);
+  opacity: 0.35;
+}
+.scrap .click-to-verify { color: #BD8D26 }
+.scrap .click-to-delete { color: #BD2626 }
 .scrap a {
   font-weight: bold;
   color: rgb(64, 107, 53);
+  text-decoration: none;
 }
 .scrap time {
   font-size: 0.8em;

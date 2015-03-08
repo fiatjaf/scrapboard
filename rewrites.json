@@ -10,7 +10,7 @@
     "from": "scraps"
   }, {
     "to": "_show/hashcash",
-    "from": "get_hashcash_data"
+    "from": "get-hashcash-seed"
   }, {
     "to": "_update/accept-scrap",
     "from": "here"
@@ -24,14 +24,11 @@
     "to": "_update/update-verified/*",
     "from": "verified/*"
   }, {
-    "to": "../../*",
-    "from": "_db/*"
+    "to": "_update/delete-scrap/*",
+    "from": "delete/*"
   }, {
-    "to": "",
-    "from": "_ddoc"
-  }, {
-    "to": "*",
-    "from": "_ddoc/*"
+    "to": "_view/to-verify",
+    "from": "to-verify"
   }, {
     "to": "*",
     "from": "/*"

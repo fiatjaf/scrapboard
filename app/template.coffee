@@ -1,5 +1,5 @@
 React = require 'lib/react'
-Scrapbook = require 'app/Scrapbook'
+Scrapbook = require 'app/Home'
 
 {getPathParts, getHasRewrite, getBasePath, getQuickBasePath, getProtocol} = require 'lib/utils'
 
@@ -22,8 +22,8 @@ module.exports = (data, req, ddoc) ->
     basePath = (#{getBasePath.toString()})(pathParts, hasRewrite)
 
     if (hasRewrite) {
-      LazyLoad.js(basePath + '/_ddoc/bundle.js')
-      LazyLoad.css(basePath + '/_ddoc/style.css')
+      LazyLoad.js(basePath + '_rewrite/bundle.js')
+      LazyLoad.css(basePath + '_rewrite/style.css')
     }
     else {
       LazyLoad.js(basePath + '/bundle.js')

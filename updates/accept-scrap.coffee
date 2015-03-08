@@ -5,6 +5,7 @@
     data = req.form
 
   v = require 'lib/validator'
+  responseHeaders = {}
 
   if not doc
     doc =
@@ -24,6 +25,7 @@
     if data.from
       # the scrapbook url of the person who posted this scrap
       doc.from = data.from
+      responseHeaders['Set-Cookie'] = "MyScrapbookURL=#{srcScrapbookBaseURL}; Max-Age=93312000"
 
     if req.userCtx and req.userCtx.name
       doc.name = req.userCtx.name
@@ -36,7 +38,14 @@
     if data.hashcash
       doc.hashcash = JSON.stringify data.hashcash
 
-    return [doc, JSON.stringify {ok: true, id: req.uuid}]
+    return [
+      doc,
+      {
+        code: 200
+        json: {ok: true, id: req.uuid}
+        headers: responseHeaders
+      }
+    ]
 
   else
     # scrap modification is not allowed

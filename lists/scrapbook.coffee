@@ -4,7 +4,7 @@
   if not req.query.include_docs or
      not req.query.limit or req.query.limit > 25 or
      req.query.skip or req.query.reduce
-    location = ddoc.settings.baseURL or if req.path.indexOf '_rewrite' isnt -1 then '_rewrite' else '/'
+    location = ddoc.settings.baseURL or if req.raw_path.indexOf '_rewrite' isnt -1 then '_rewrite' else '/'
     return {
       code: 302
       headers:
@@ -26,6 +26,7 @@
     scraps: scraps
     nextpage: '?' + query.join('&')
     firstpage: '?' + query.slice(1).join('&')
+    visitorsScrapbookURL: req.cookie.MyScrapbookURL
 
   provides 'json', ->
     toJSON fetch()

@@ -2,37 +2,34 @@ React = require 'lib/react'
 hashcash = require 'lib/hashcash-token'
 superagent = require 'lib/superagent'
 
-{getQuickBasePath} = require 'lib/utils'
-{div, time, a, form, input, textarea, button} = React.DOM
+Login = require './Login'
+Scrap = require './Scrap'
 
-getSessionURL = -> if typeof getBaseURL == 'function' then getBaseURL() + '/_session' else '/_session'
+{getQuickBasePath} = require 'lib/utils'
+{section, footer, div, time, a, form, input, textarea, button} = React.DOM
 
 Scrapbook = React.createClass
   getDefaultProps: ->
     scraps: []
   getInitialState: ->
     externalLoginURL: null
-    showNameInput: true
+    logged: false
     verifying: false
 
   componentDidMount: ->
     if not @props.scraps.length
       @loadScraps()
 
-    # get domain or name at localStorage
-    @refs.from.getDOMNode().value = localStorage.getItem 'domain/name'
-
-  doShowNameInput: -> @setState showNameInput: true
-  dontShowNameInput: -> @setState showNameInput: false
-
   handleLogin: ->
-    @dontShowNameInput()
-    @setState verifying: true
+    @setState
+      logged: true
+      verifying: true
     @verifyScraps()
 
   handleLogout: ->
-    @doShowNameInput()
-    @setState verifying: false
+    @setState
+      logged: false
+      verifying: false
 
   loadScraps: (params, e) ->
     if e and params
@@ -58,7 +55,7 @@ Scrapbook = React.createClass
       return
     else
       # first we fetch one row of docs waiting to be verified
-      superagent.get(basePath + '/_ddoc/_view/to-verify?limit=1')
+      superagent.get(basePath + '/to-verify?limit=1')
                 .set('accept', 'application/json')
                 .withCredentials()
                 .end (err, res) =>
@@ -134,7 +131,6 @@ Scrapbook = React.createClass
         className: 'top-bar'
       ,
         (Login
-          url: getSessionURL()
           className: 'login-top'
           onLogin: @handleLogin
           onLogout: @handleLogout
@@ -147,8 +143,14 @@ Scrapbook = React.createClass
         onSubmit: @handleSubmit
       ,
         (div {},
-          (input {ref: 'from', name: 'from', placeholder: 'your scrapbook URL, if you have one, or your name'})
-        ) if @state.showNameInput
+          (input
+            ref: 'from'
+            name: 'from'
+            placeholder: 'your scrapbook URL, if you have one, or your name'
+            defaultValue: @props.visitorsScrapbookURL
+          ) if not @state.logged
+          'this is your own scrapbook.' if @state.logged
+        )
         (div {},
           (textarea {ref: 'content', name: 'content'})
         )
@@ -165,28 +167,18 @@ Scrapbook = React.createClass
         (a {href: @state.externalLoginURL, target: '_blank'}, @state.externalLoginURL)
         ' through this form or by going there directly.'
       ) if @state.externalLoginURL
-      (div className: 'scraps',
-        (div
-          className: 'scrap h-entry'
-          key: scrap._id
-        ,
-          (a {className: 'not-verified'}, '×') if not scrap.verified
-          (a {className: 'h-card', href: scrap.from}, scrap.name or scrap.from or 'Anonymous')
-          (time
-            className: 'dt-published'
-          , (new Date scrap.timestamp).toISOString().substr(0,16).split('T').join(' '))
-          (div
-            className: 'e-content'
-          , scrap.content)
-        ) for scrap in @props.scraps
-        (a
-          onClick: @loadScraps.bind @, @props.firstpage
-          href: @props.firstpage
-        , 'first page')
-        (a
-          onClick: @loadScraps.bind @, @props.nextpage
-          href: @props.nextpage
-        , 'next page') if @props.scraps.length >= 25
+      (section className: 'scraps',
+        (Scrap {logged: @state.logged, scrap: scrap, key: scrap._id}) for scrap in @props.scraps
+        (footer {},
+          (a
+            onClick: @loadScraps.bind @, @props.firstpage
+            href: @props.firstpage
+          , 'first page')
+          (a
+            onClick: @loadScraps.bind @, @props.nextpage
+            href: @props.nextpage
+          , 'next page') if @props.scraps.length >= 25
+        )
       )
     )
 
@@ -226,7 +218,7 @@ Scrapbook = React.createClass
           # if there was no error posting at the person's own
           # scrapbook we proceed, now having the scrap id and the
           # correct scrapbook URL
-          @postHere(srcid, homeurl)
+          @postHere(srcid, homeurl, homeurl)
 
     catch e
       @postHere(null, null, name)
@@ -277,7 +269,7 @@ Scrapbook = React.createClass
     # if hashcash is needed, first fetch the data to use in the token
     # generation:
     if window.use_hashcash
-      superagent.get(basePath + '/get_hashcash_data')
+      superagent.get(basePath + '/get-hashcash-seed')
                 .end (err, res) =>
         return console.log err if err
 
@@ -300,9 +292,6 @@ Scrapbook = React.createClass
       return console.log err if err
       return console.log res.text unless JSON.parse(res.text).ok
 
-      # save domain or name at localStorage
-      localStorage.setItem 'domain/name', @refs.from.getDOMNode().value
-
       if url.parse(basePath).host == location.host and location.search.indexOf('startkey') isnt -1
         # go to the first page
         location.href = @props.firstpage
@@ -314,76 +303,6 @@ Scrapbook = React.createClass
         # clean content data
         @refs.content.getDOMNode().value = ''
 
-Login = React.createClass
-  getInitialState: ->
-    loggedAs: null
-
-  componentDidMount: ->
-    superagent.get(getSessionURL())
-              .set('accept', 'application/json')
-              .end (err, res) =>
-      if not err and res.body.ok
-        @setState loggedAs: res.body.userCtx.name
-
-        if res.body.userCtx.name
-          @props.onLogin(res.body.userCtx.name) if @props.onLogin
-
-  render: ->
-    (div className: @props.className,
-      (div {},
-        @props.children
-        (form
-          method: 'post'
-          action: @props.url
-          onSubmit: @doLogin
-        ,
-          (input name: 'name', ref: 'name', placeholder: 'name')
-          (input type: 'password', name: 'password', ref: 'password', placeholder: 'password')
-          (button
-            type: 'submit'
-          , 'Login')
-        )
-      ) if not @state.loggedAs
-      (div {},
-        "logged as #{@state.loggedAs} ("
-        (a {href: "#", onClick: @doLogout}, 'logout')
-        ")"
-      ) if @state.loggedAs
-    )
-
-  doLogin: (e) ->
-    e.preventDefault()
-
-    name = @refs.name.getDOMNode().value
-    password = @refs.password.getDOMNode().value
-    superagent.post(@props.url)
-              .set('content-type', 'application/x-www-form-urlencoded')
-              .set('accept', 'application/json')
-              .send(name: name, password: password)
-              .withCredentials()
-              .end (err, res) =>
-      if err or not res.body.ok
-        return
-
-      @setState
-        loggedAs: res.body.name
-
-      @props.onLogin(res.body.name) if @props.onLogin
-
-  doLogout: (e) ->
-    e.preventDefault()
-
-    superagent.del(@props.url)
-              .withCredentials()
-              .end (err, res) =>
-      if err
-        return
-
-      @setState
-        loggedAs: null
-
-      @props.onLogout() if @props.onLogout
-    
 module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
