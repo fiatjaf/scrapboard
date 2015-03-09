@@ -6,50 +6,26 @@
   NOW = (new Date).getTime()
   isInternal = (key) -> key[0] == '_'
   userIsAdmin = ->
-    ## normalize cloudant secObj
-    if secObj.cloudant
-      if '_writer' in secObj.cloudant.nobody
-        return true
-
-      names = []
-      for name, roles in secObj.cloudant
-        names.push name if '_writer' in roles
-
-      roles = []
-    
-    else
-      if not secObj.members and not secObj.admins
-        return true
-
-      admins = secObj.admins or {}
-      members = secObj.members or {}
-      names = (admins.names or []).concat(members.names or [])
-      roles = (admins.roles or []).concat(members.roles or [])
-    ## now we have a standard "names" and a standard "roles"
-
-    if userCtx.name in names
+    if userCtx.name in secObj.admins.names
       return true
 
     for role in userCtx.roles
-      if role in roles
+      if role in secObj.admins.roles
         return true
 
+    # a quirk of the smileupps databases
+    if '_admin' in userCtx.roles
+      return true
+
+    return false
 
   ######### start validating
 
   if newDoc.where == 'here'
     # outsiders posting here
 
-    # check hashcash token (anti-spam)
-    if ddoc.settings and ddoc.settings.hashcash and not userIsAdmin()
-      throw unauthorized: 'hashcash token needed.' if not newDoc.hashcash
-      token = JSON.parse newDoc.hashcash
-      throw unauthorized: 'hashcash token wrong.' if not hashcash.validate token, {
-        difficulty: 20000
-        data: sha256(NOW.toString().substr(0, 8) + ddoc.settings.hashcash)
-      }
-
     # don't allow modification of docs
+    # this also covers people trying to delete docs and other attacks
     if oldDoc and not userIsAdmin()
       throw forbidden: 'Can\'t change scraps already posted.'
 
@@ -77,6 +53,15 @@
       # check the correct timestamp
       if newDoc.timestamp > NOW + 60000 or newDoc.timestamp < NOW - 60000
         throw forbidden: 'timestamp is not now.'
+
+      # check hashcash token (anti-spam)
+      if ddoc.settings and ddoc.settings.hashcash and not userIsAdmin()
+        throw unauthorized: 'hashcash token needed.' if not newDoc.hashcash
+        token = JSON.parse newDoc.hashcash
+        throw unauthorized: 'hashcash token wrong.' if not hashcash.validate token, {
+          difficulty: 20000
+          data: sha256(NOW.toString().substr(0, 8) + ddoc.settings.hashcash)
+        }
 
       # check if the document is not marked as verified
       if newDoc.verified is not false
