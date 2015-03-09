@@ -85,33 +85,15 @@ Scrapbook = React.createClass
             if err
               return console.log err
 
-            if /couch/i.exec res.headers['server']
-              # in the couchdb case, we parse the JSON
-              doc = JSON.parse res.text
-              if doc.error
-                return console.log doc
+            doc = JSON.parse res.text
+            if doc.error
+              return console.log doc
 
-              # and grab the contents directly.
-              update =
-                verified: true
-                content: doc.content
-                name: doc.name
-
-            else
-              # in the webmention case, parse the HTML
-              hiddenDOM = document.createElement('html')
-              hiddenDOM.innerHTML = res.text
-              mf2_opts =
-                node: hiddenDOM
-                filter: ['h-card', 'h-entry']
-              items = microformats.getItems(mf2_opts)
-
-              update = {verified: true}
-              for item in items.items
-                if 'h-card' in item.type
-                  update.name = item.properties.name[0]
-                if 'h-entry' in item.type
-                  update.content = item.properties.content[0].value
+            # grab the contents directly.
+            update =
+              verified: true
+              content: doc.content
+              name: doc.name
 
             # then update the scrap and mark it as verified.
             superagent.put(basePath + '/verified/' + docid)
@@ -307,7 +289,6 @@ module.exports = Scrapbook
 
 if typeof window isnt 'undefined'
   url = require 'lib/urlparser'
-  microformats = require 'lib/microformat-shiv'
   getBaseURL = ->
     p = url.parse basePath
     if p.host

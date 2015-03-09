@@ -8,7 +8,6 @@ module.exports = (data, req, ddoc) ->
   <!DOCTYPE html>
   
   <title>Scrapbook</title>
-  <link href="#{getProtocol req, ddoc}://#{req.headers['Host'] + getQuickBasePath(req.requested_path or req.path)}/webmention" rel="webmention">
   
   <div id="scrapboard-main">
     #{React.renderComponentToString Scrapbook(data)}
