@@ -46,7 +46,7 @@ module.exports = React.createClass
 
   clickVerify: (e) ->
     e.preventDefault()
-    superagent.put(basePath + '/verified/' + @props.scrap._id)
+    superagent.put(basePath + '/verify/' + @props.scrap._id)
               .withCredentials()
               .end (err, res) =>
       if not err

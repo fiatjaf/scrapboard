@@ -74,7 +74,7 @@ Scrapbook = React.createClass
           if typeof row.value == 'object'
             # grab its source if it is an array of some scrapbook path (with lots of fields)
             # and a docid (at the source). we build a direct url to the source doc here.
-            source = getQuickBasePath(row.value[0]) + '/_db/' + row.value[1]
+            source = getQuickBasePath(row.value[0]) + '/scrap/' + row.value[1]
           else
             # grab the source as it was passed, if it was a webmention or something alike.
             source = row.value
@@ -96,7 +96,7 @@ Scrapbook = React.createClass
               name: doc.name
 
             # then update the scrap and mark it as verified.
-            superagent.put(basePath + '/verified/' + docid)
+            superagent.put(basePath + '/verify/' + docid)
                       .send(update)
                       .withCredentials()
                       .end (err, res) =>

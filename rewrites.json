@@ -1,36 +1,13 @@
 [
-  {
-    "to": "_show/index",
-    "from": ""
-  }, {
-    "to": "_show/widget",
-    "from": "widget.js"
-  }, {
-    "to": "_list/scrapbook/here",
-    "from": "scraps"
-  }, {
-    "to": "_show/hashcash",
-    "from": "get-hashcash-seed"
-  }, {
-    "to": "_update/accept-scrap",
-    "from": "here"
-  }, {
-    "to": "_update/scrap-elsewhere",
-    "from": "elsewhere"
-  }, {
-    "to": "_update/accept-webmention",
-    "from": "webmention"
-  }, {
-    "to": "_update/update-verified/*",
-    "from": "verified/*"
-  }, {
-    "to": "_update/delete-scrap/*",
-    "from": "delete/*"
-  }, {
-    "to": "_view/to-verify",
-    "from": "to-verify"
-  }, {
-    "to": "*",
-    "from": "/*"
-  }
+  { "to": "_show/index", "from": "" },
+  { "to": "_show/widget", "from": "widget.js" },
+  { "to": "_list/scrapbook/here", "from": "scraps" },
+  { "to": "_show/hashcash", "from": "get-hashcash-seed" },
+  { "to": "_show/scrap/:id", "from": "scrap/:id" },
+  { "to": "_update/accept-scrap", "from": "here" },
+  { "to": "_update/scrap-elsewhere", "from": "elsewhere" },
+  { "to": "_update/verify-scrap/*", "from": "verify/*" },
+  { "to": "_update/delete-scrap/*", "from": "delete/*" },
+  { "to": "_view/to-verify", "from": "to-verify" },
+  { "to": "*", "from": "/*" }
 ]
