@@ -44,15 +44,17 @@ module.exports = React.createClass
       , scrap.content)
     )
 
-  clickVerify: ->
+  clickVerify: (e) ->
+    e.preventDefault()
     superagent.put(basePath + '/verified/' + @props.scrap._id)
               .withCredentials()
               .end (err, res) =>
       if not err
-        @updatedScrap = res.body
+        @updatedScrap = JSON.parse res.text
         @forceUpdate()
 
-  clickDelete: ->
+  clickDelete: (e) ->
+    e.preventDefault()
     superagent.del(basePath + '/delete/' + @props.scrap._id)
               .withCredentials()
               .end (err, res) =>

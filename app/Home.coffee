@@ -194,7 +194,7 @@ Scrapbook = React.createClass
           # other errors mean that the name is either an URL
           # to a non-scrapbook page or a name, so we submit it
           # as both.
-          else @postHere(null, homeurl, homeurl)
+          else @postHere(null, null, homeurl)
 
         else
           # if there was no error posting at the person's own

@@ -13,10 +13,21 @@ getBasePath = (pathParts, hasRewrite=true) ->
     for part in pathParts
       basePath.push part
       break if part == '_rewrite'
-    return basePath.join '/'
+    return basePath.filter((x) -> x.trim()).join '/'
   else
     return ''
+
 getQuickBasePath = (fullPathName) ->
+  fullPathName = fullPathName.trim()
+
+  if fullPathName.slice(0, 7) == 'http://' or \
+     fullPathName.slice(0, 8) == 'https://' or \
+     fullPathName.slice(0, 2) == '//'
+    if fullPathName.slice(-1) == '/'
+      return fullPathName.slice 0, -1
+    else
+      return fullPathName
+
   pathParts = getPathParts fullPathName
   hasRewrite = getHasRewrite pathParts
   return getBasePath pathParts, hasRewrite

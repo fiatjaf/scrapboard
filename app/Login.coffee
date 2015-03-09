@@ -3,7 +3,13 @@ superagent = require 'lib/superagent'
 
 {div, time, a, form, input, textarea, button} = React.DOM
 
-getSessionURL = -> if typeof getBaseURL == 'function' then getBaseURL() + '/_session' else '/_session'
+getSessionURL = ->
+  if typeof getBaseURL == 'function'
+    getBaseURL() + '/_session'
+  else if typeof basePath isnt 'undefined'
+    basePath + '/_session'
+  else
+    '/_session'
 
 module.exports = React.createClass
   getInitialState: ->

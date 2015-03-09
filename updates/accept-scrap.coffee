@@ -25,7 +25,7 @@
     if data.from
       # the scrapbook url of the person who posted this scrap
       doc.from = data.from
-      responseHeaders['Set-Cookie'] = "MyScrapbookURL=#{srcScrapbookBaseURL}; Max-Age=93312000"
+      responseHeaders['Set-Cookie'] = "MyScrapbookURL=#{encodeURIComponent data.from}; Max-Age=93312000"
 
     if req.userCtx and req.userCtx.name
       doc.name = req.userCtx.name
