@@ -46,6 +46,7 @@ Scrapbook = React.createClass
 
     superagent.get(loadURL + params)
               .set('Accept', 'application/json')
+              .withCredentials()
               .end (err, res) =>
       if not err
         @setProps JSON.parse res.text
@@ -243,6 +244,7 @@ Scrapbook = React.createClass
 
     if from
       payload.from = from
+      localStorage.setItem
 
     if not payload.from and not payload.src and not payload.name
       if not confirm('Send anonymous scrap?')
@@ -270,6 +272,7 @@ Scrapbook = React.createClass
   submitScrap: (payload) ->
     superagent.post(basePath + '/here')
               .send(payload)
+              .withCredentials()
               .end (err, res) =>
       return console.log err if err
       return console.log res.text unless JSON.parse(res.text).ok

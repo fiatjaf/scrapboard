@@ -26,7 +26,7 @@
     scraps: scraps
     nextpage: '?' + query.join('&')
     firstpage: '?' + query.slice(1).join('&')
-    visitorsScrapbookURL: decodeURIComponent req.cookie.MyScrapbookURL
+    visitorsScrapbookURL: if req.cookie.myscrapbook then decodeURIComponent req.cookie.myscrapbook else ''
 
   provides 'json', ->
     toJSON fetch()

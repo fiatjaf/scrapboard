@@ -25,6 +25,7 @@ module.exports = React.createClass
   checkLoginStatus: ->
     superagent.get(getSessionURL())
               .set('accept', 'application/json')
+              .withCredentials()
               .end (err, res) =>
       if not err and res.body.ok
         @setState loggedAs: res.body.userCtx.name
