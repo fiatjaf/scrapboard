@@ -1,12 +1,12 @@
 (doc, req) ->
   url = require 'lib/urlparser'
-  if url.parse(@settings.baseURL).host != url.parse(req.headers.Referer).host
-    # don't accept requests from external domains
-    # prevent bizarre attacks using cors
-    return [null, "you can't do this from an external URL. go to #{@settings.baseURL} to do this."]
+  {isInURL} = require 'lib/utils'
+
+  if not isInURL req.headers.Referer, (@settings.hosts or []).concat(@settings.baseURL)
+    return [null, {code: 403}]
 
   if not doc
-    return [null, '']
+    return [null, {code: 400}]
 
   try
     data = JSON.parse req.body

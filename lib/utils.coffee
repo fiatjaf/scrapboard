@@ -43,9 +43,28 @@ getProtocol = (req, ddoc) ->
       protocol = 'https'
   protocol
 
+urlparser = require 'lib/urlparser'
+isInURL = (referrer, allowedAddresses) ->
+  if referrer.substr(0, 4) != 'http'
+    if referrer.substr(4, 2) not in ['//', ':/']
+      referrer = '://' + referrer
+    referrer = 'http://' + referrer
+
+  host = urlparser.parse(referrer).host
+  for url in allowedAddresses
+    if url.substr(0, 4) isnt 'http'
+      if url.substr(4, 2) not in ['//', ':/']
+        url = '://' + url
+      url = 'http' + url
+    allowed = urlparser.parse(url).host
+
+    if allowed == host
+      return true
+
 module.exports =
   getPathParts: getPathParts
   getHasRewrite: getHasRewrite
   getBasePath: getBasePath
   getQuickBasePath: getQuickBasePath
   getProtocol: getProtocol
+  isInURL: isInURL

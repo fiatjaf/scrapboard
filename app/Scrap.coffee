@@ -49,7 +49,7 @@ module.exports = React.createClass
     superagent.put(basePath + '/verify/' + @props.scrap._id)
               .withCredentials()
               .end (err, res) =>
-      if not err
+      if not err and not res.forbidden
         @updatedScrap = JSON.parse res.text
         @forceUpdate()
 
@@ -58,7 +58,7 @@ module.exports = React.createClass
     superagent.del(basePath + '/delete/' + @props.scrap._id)
               .withCredentials()
               .end (err, res) =>
-      if not err
+      if not err and not res.forbidden
         @updatedScrap = @updatedScrap or @props.scrap
         @updatedScrap._deleted = true
 
