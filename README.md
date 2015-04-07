@@ -4,7 +4,9 @@ A decentralized couchapp implementation of the old Orkut Scrapbook.
 
 ## background
 
-[Orkut](https://orkut.google.com/en.html)'s **Scrapbook** was a messaging service that allowed public _scraps_ (a text message) to be posted by anyone to anyone's _scrapbook_.
+![the old orkut scrapbook](http://i.imgur.com/WpPwNaN.jpg)
+
+[Orkut](https://orkut.google.com/en.html)'s [scrapbook](http://i.imgur.com/WpPwNaN.jpg) was a messaging service that allowed public _scraps_ (a text message) to be posted by anyone to anyone's _scrapbook_.
 
 Although simple, the Scrapbook was a somewhat unique messaging service for a social network. It worked as a hybrid between private messaging and publicly posting, for example, on a friend's Facebook Timeline. But, unlike private messaging, unlike posting to a friend's Timeline and unlike sharing content with everybody and at the same time with no one (as with Twitter), in the Scrapbook:
 
