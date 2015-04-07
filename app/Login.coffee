@@ -15,9 +15,7 @@ module.exports = React.createClass
   getInitialState: ->
     url: @props.url or getSessionURL()
     loggedAs: null
-
-  shouldComponentUpdate: (_, nextState) ->
-    @state.loggedAs != nextState.loggedAs
+    dismissedAd: false
 
   componentDidMount: ->
     @checkLoginStatus()
@@ -34,20 +32,35 @@ module.exports = React.createClass
           @props.onLogin(res.body.userCtx.name) if @props.onLogin
 
   render: ->
+    adWrapper = null
+    loginForm = (form
+      method: 'post'
+      action: @state.url
+      onSubmit: @doLogin
+    ,
+      (input name: 'name', ref: 'name', placeholder: 'name')
+      (input type: 'password', name: 'password', ref: 'password', placeholder: 'password')
+      (button
+        type: 'submit'
+      , 'Login')
+    )
+
+    if not @state.loggedAs and not @props.children and not @state.dismissedAd
+      adWrapper = (div {},
+        (a
+          href: 'https://www.smileupps.com/store/apps/scrapbook'
+          target: '_blank'
+        , 'get a scrapbook')
+        ' or '
+        (button
+          onClick: @dismissAd
+        , 'login')
+      )
+
     (div className: @props.className,
       (div {},
         @props.children
-        (form
-          method: 'post'
-          action: @state.url
-          onSubmit: @doLogin
-        ,
-          (input name: 'name', ref: 'name', placeholder: 'name')
-          (input type: 'password', name: 'password', ref: 'password', placeholder: 'password')
-          (button
-            type: 'submit'
-          , 'Login')
-        )
+        adWrapper or loginForm
       ) if not @state.loggedAs
       (div {},
         "logged as #{@state.loggedAs} ("
@@ -55,6 +68,10 @@ module.exports = React.createClass
         ")"
       ) if @state.loggedAs
     )
+
+  dismissAd: (e) ->
+    e.preventDefault()
+    @setState dismissedAd: true
 
   doLogin: (e) ->
     e.preventDefault()
