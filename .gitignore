@@ -2,3 +2,5 @@ validate_doc_update.js
 node_modules
 Makefile
 settings.json
+*.swo
+*.swp
